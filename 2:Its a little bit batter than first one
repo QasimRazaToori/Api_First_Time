@@ -1,0 +1,85 @@
+import 'dart:convert';
+
+import 'package:flutter/material.dart';
+import 'package:http/http.dart' as http;
+
+import 'Models/model1.dart'; // Assuming model1.dart contains the Postsmodel class.
+
+class HomeScreen extends StatefulWidget {
+  const HomeScreen({super.key});
+
+  @override
+  State<HomeScreen> createState() => _HomeScreenState();
+}
+
+class _HomeScreenState extends State<HomeScreen> {
+  List<Postsmodel> postList = [];
+
+  Future<List<Postsmodel>> getApi() async {
+    final response =
+        await http.get(Uri.parse('https://jsonplaceholder.typicode.com/posts'));
+    var data = jsonDecode(response.body);
+
+    if (response.statusCode == 200) {
+      postList.clear(); // Clear the list before adding new data
+      for (var item in data) {
+        postList.add(Postsmodel.fromJson(item as Map<String, dynamic>));
+      }
+      return postList;
+    } else {
+      return postList;
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(
+        title: Text('API'),
+      ),
+      body: Column(
+        children: [
+          FutureBuilder<List<Postsmodel>>(
+            future: getApi(),
+            builder: (context, snapshot) {
+              if (snapshot.connectionState == ConnectionState.waiting) {
+                return Center(child: CircularProgressIndicator());
+              } else if (snapshot.hasError) {
+                return Center(child: Text('Error: ${snapshot.error}'));
+              } else if (!snapshot.hasData || snapshot.data!.isEmpty) {
+                return Center(child: Text('No data found'));
+              } else {
+                return Expanded(
+                  child: ListView.builder(
+                    itemCount: snapshot.data!.length,
+                    itemBuilder: (context, index) {
+                      return Card(
+                          color: Colors.purpleAccent,
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(
+                                '${'Tittle:' + index.toString()} \n' +
+                                    postList[index].title.toString(),
+                                style: TextStyle(fontSize: 20),
+                              ),
+                              SizedBox(
+                                height: 10,
+                              ),
+                              Text(
+                                'Body:\n' + postList[index].body.toString(),
+                                style: TextStyle(fontSize: 20),
+                              ),
+                            ],
+                          ));
+                    },
+                  ),
+                );
+              }
+            },
+          ),
+        ],
+      ),
+    );
+  }
+}
