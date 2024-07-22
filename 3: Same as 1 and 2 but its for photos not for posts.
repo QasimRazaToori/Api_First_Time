@@ -1,0 +1,77 @@
+import 'dart:convert';
+// Remove this import as it's not needed in a Flutter mobile app
+// import 'dart:html';
+
+import 'package:flutter/material.dart';
+import 'package:http/http.dart' as http;
+
+import 'Models/model2.dart'; // Assuming model2.dart contains the PostModel2 class.
+
+class HomeScreen extends StatefulWidget {
+  const HomeScreen({super.key});
+
+  @override
+  State<HomeScreen> createState() => _HomeScreenState();
+}
+
+class _HomeScreenState extends State<HomeScreen> {
+  List<postmodel2> postList = [];
+
+  Future<List<postmodel2>> get getApi async {
+    final response = await http
+        .get(Uri.parse('https://jsonplaceholder.typicode.com/photos'));
+    var data = jsonDecode(response.body);
+
+    if (response.statusCode == 200) {
+      postList.clear(); // Clear the list before adding new data
+      if (data is List) {
+        for (var item in data) {
+          postList.add(postmodel2.fromJson(item as Map<String, dynamic>));
+        }
+      }
+      return postList;
+    } else {
+      return postList;
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(
+        title: Text('API'),
+      ),
+      body: Column(
+        children: [
+          FutureBuilder<List<postmodel2>>(
+            future: getApi,
+            builder: (context, snapshot) {
+              if (snapshot.connectionState == ConnectionState.waiting) {
+                return Center(child: CircularProgressIndicator());
+              } else if (snapshot.hasError) {
+                return Center(child: Text('Error: ${snapshot.error}'));
+              } else if (!snapshot.hasData || snapshot.data!.isEmpty) {
+                return Center(child: Text('No data found'));
+              } else {
+                return Expanded(
+                  child: ListView.builder(
+                    itemCount: snapshot.data!.length,
+                    itemBuilder: (context, index) {
+                      return ListTile(
+                        leading: CircleAvatar(
+                          backgroundImage: NetworkImage(
+                              snapshot.data![index].url.toString()),
+                        ),
+                        title: Text(snapshot.data![index].title.toString()),
+                      );
+                    },
+                  ),
+                );
+              }
+            },
+          ),
+        ],
+      ),
+    );
+  }
+}
