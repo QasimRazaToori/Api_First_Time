@@ -1,0 +1,101 @@
+import 'dart:convert';
+
+import 'package:flutter/material.dart';
+import 'Models/model3.dart';
+import 'package:http/http.dart' as http;
+
+class userMod extends StatefulWidget {
+  const userMod({super.key});
+
+  @override
+  State<userMod> createState() => _userModState();
+}
+
+class _userModState extends State<userMod> {
+  List<userModel> Uselist = [];
+  Future<List<userModel>> Apifun() async {
+    final response =
+        await http.get(Uri.parse('https://jsonplaceholder.typicode.com/users'));
+    var data = jsonDecode(response.body.toString());
+    for (Map item in data) {
+      Uselist.add(userModel.fromJson(item as Map<String, dynamic>));
+    }
+    if (response.statusCode == 200) {
+      return Uselist;
+    } else {
+      return Uselist;
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return FutureBuilder(
+        future: Apifun(),
+        builder: ((context, AsyncSnapshot<List<userModel>> snapshot) {
+          if (!snapshot.hasData) {
+            return Center(child: CircularProgressIndicator());
+          }
+          return Expanded(
+            child: ListView.builder(
+                itemCount: Uselist.length,
+                itemBuilder: ((context, index) {
+                  return Card(
+                    color: Color.fromARGB(255, 33, 231, 66),
+                    child: Padding(
+                      padding: const EdgeInsets.all(8.0),
+                      child: Column(
+                        children: [
+                          Row(
+                            children: [
+                              Text(
+                                'Name',
+                                style: TextStyle(
+                                    color: Color.fromARGB(255, 255, 100, 190)),
+                              ),
+                              Spacer(),
+                              Text(
+                                snapshot.data![index].name.toString(),
+                                style: TextStyle(color: Colors.red),
+                              )
+                            ],
+                          ),
+                          SizedBox(
+                            height: 30,
+                          ),
+                          Row(
+                            children: [
+                              Text('Email'),
+                              Spacer(),
+                              Text(snapshot.data![index].email.toString())
+                            ],
+                          ),
+                          SizedBox(
+                            height: 30,
+                          ),
+                          Row(
+                            children: [
+                              Text('User Name'),
+                              Spacer(),
+                              Text(snapshot.data![index].username.toString())
+                            ],
+                          ),
+                          SizedBox(
+                            height: 30,
+                          ),
+                          Row(
+                            children: [
+                              Text('Addrees'),
+                              Spacer(),
+                              Text(snapshot.data![index].address!.city
+                                  .toString())
+                            ],
+                          )
+                        ],
+                      ),
+                    ),
+                  );
+                })),
+          );
+        }));
+  }
+}
